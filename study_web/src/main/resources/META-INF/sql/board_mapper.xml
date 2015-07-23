@@ -1,0 +1,100 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.samhyun.study">
+
+	<sql id="getCountPrefix">
+		select count(*) total_cnt, CEIL(count(*)/#{pageSize}) page_cnt from (
+	</sql>
+	<sql id="getCountPostfix">
+		)
+	</sql>
+	<sql id="paginationPrefix">
+		SELECT * FROM (SELECT ROWNUM AS NO, CONTENT_DATA.* FROM (
+	</sql>
+	<sql id="paginationPostfix">
+		) CONTENT_DATA) WHERE NO BETWEEN ((#{pageNum}<![CDATA[-]]>1)<![CDATA[*]]>#{pageSize})<![CDATA[+]]>1  AND (#{pageNum}<![CDATA[*]]>#{pageSize})
+	</sql>
+	
+	<sql id="selectBoardsFragment">
+		select 
+			* 
+		from board	
+		where del_yn = 'n'
+		<if test="searchType != null">
+			<if test="searchType == 'all'">
+				and TITLE like '%' || #{keyword,jdbcType=VARCHAR} || '%' 
+				 or content like '%' || #{keyword,jdbcType=VARCHAR} || '%'
+				 or WRITOR like '%' || #{keyword,jdbcType=VARCHAR} || '%'
+			</if>
+			<if test="searchType == 'titleAndContent'">
+				and TITLE like '%' || #{keyword,jdbcType=VARCHAR} || '%' 
+				 or content like '%' || #{keyword,jdbcType=VARCHAR} || '%'
+			</if>
+			<if test="searchType == 'writer'">
+				and WRITOR like '%' || #{keyword,jdbcType=VARCHAR} || '%'
+			</if>		
+		</if>
+		order by REG_DATE desc
+	</sql>
+	<select id="getCountBoards" resultType="com.samhyun.study.common.domain.Page" parameterType="com.samhyun.study.common.domain.Page">
+		<include refid="getCountPrefix"/>
+		<include refid="selectBoardsFragment"/>
+		<include refid="getCountPostfix"/>
+	</select>
+	<select id="selectBoards" resultType="com.samhyun.study.board.domain.Board" parameterType="com.samhyun.study.common.domain.Page">
+		<include refid="paginationPrefix"/>
+		<include refid="selectBoardsFragment"/>
+		<include refid="paginationPostfix"/>
+	</select>
+<!-- 	<select id="selectBoards" resultType="com.samhyun.study.board.domain.Board" parameterType="com.samhyun.study.common.domain.Page"> -->
+<!-- 		select  -->
+<!-- 			*  -->
+<!-- 		from board	 -->
+<!-- 		where del_yn = 'n' -->
+<!-- 		<if test="keyword != null"> -->
+<!-- 			and TITLE like '%' + #{keyword,jdbcType=VARCHAR} + '%'  -->
+<!-- 			 or content like '%' + #{keyword,jdbcType=VARCHAR} + '%' -->
+<!-- 		</if> -->
+<!-- 		<if test="writerId != null"> -->
+<!-- 			WRITOR like '%' + #{writerId,jdbcType=VARCHAR} + '%' -->
+<!-- 		</if>		 -->
+<!-- 		order by REG_DATE desc -->
+<!-- 	</select> -->
+	
+	<select id="selectBoardsById" resultType="com.samhyun.study.board.domain.Board" parameterType="String">
+		select * from board	where id = #{id} order by id desc
+	</select>
+	
+	<insert id="insertBoard_old" parameterType="com.samhyun.study.board.domain.Board">
+		insert into board values (#{id}, #{type},#{title},#{content},'n',sysdate, sysdate, #{writor}, #{count, jdbcType=NUMERIC})
+	</insert>
+	
+	<insert id="insertBoard" parameterType="com.samhyun.study.board.domain.Board">
+		MERGE INTO board
+      	USING dual ON (id = #{id, jdbcType=VARCHAR})
+		WHEN MATCHED THEN 
+     	UPDATE SET title = #{title}, 
+     			   content = #{content},
+     			   last_modified = sysdate 
+		WHEN NOT MATCHED THEN 
+     	INSERT VALUES(1, #{type},#{title},#{content},'n',sysdate, sysdate, #{writor}, 0)
+	</insert>
+	
+	<insert id="insertBoardToMap" parameterType="map">
+		insert into board values (#{id}, #{type},#{title},#{content},'n',sysdate, sysdate, #{writor}, #{count, jdbcType=NUMERIC})
+	</insert>
+	<update id="deleteBoard" parameterType="String">
+		update 
+			board
+		set del_yn = 'y'
+		where id = #{id}
+	</update>
+	<update id="updateCount" parameterType="String">
+		UPDATE 
+			board 
+		SET count = count + 1 
+		WHERE id = #{id}
+	</update>
+</mapper>

@@ -1,0 +1,37 @@
+@CHARSET "UTF-8";
+html {
+  position: relative;
+  min-height: 100%;
+  display: block;
+  font-size: 10px;
+  -webkit-tap-highlight-color: rgba(0,0,0,0);
+  font-family: sans-serif;
+  -webkit-text-size-adjust: 100%;
+  -ms-text-size-adjust: 100%;
+}
+body{
+	min-height: 100%;
+}
+
+/* table, tr, td, th{ */
+/* 	border: 1px solid black; */
+/* 	border-collapse: collapse; */
+/* } */
+
+div.wrapper{
+	margin: 20px;
+	min-height: 840px;
+}
+div.valignCenter{
+	vertical-align: middle;
+}
+div.valignCenter > div.form-group{
+	float: right;
+}
+div.row-wrapper {
+	width: 100%;
+	display: inline-block;	
+}
+/* input.noneBorder{ */
+/* 	border: none; */
+/* } */
